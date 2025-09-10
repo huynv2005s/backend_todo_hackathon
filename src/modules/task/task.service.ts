@@ -1,8 +1,21 @@
 import prisma from "../../db/prisma";
 
 export const TaskService = {
-    async create(data: { columnId: string; title: string; order: number }) {
-        return prisma.task.create({ data });
+    async create(columnId: string, title: string) {
+        const maxPosition = await prisma.task.aggregate({
+            where: { columnId },
+            _max: { position: true }
+        });
+
+        const nextPosition = (maxPosition._max.position ?? 0) + 1;
+
+        return prisma.task.create({
+            data: {
+                title,
+                columnId,
+                position: nextPosition
+            }
+        });
     },
 
     async update(data: { id: string; title?: string; order?: number; columnId?: string }) {
@@ -14,5 +27,8 @@ export const TaskService = {
 
     async delete(id: string) {
         return prisma.task.delete({ where: { id } });
+    },
+    async findAll() {
+        return prisma.task.findMany();
     }
 };

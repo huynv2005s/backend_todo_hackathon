@@ -3,8 +3,8 @@ import { TaskService } from "./task.service";
 
 export const TaskController = {
     async createTask(req: Request, res: Response) {
-        const { columnId, title, position } = req.body;
-        const task = await TaskService.create({ columnId, title, position });
+        const { columnId, title } = req.body;
+        const task = await TaskService.create(columnId, title);
         res.json(task);
     },
 
@@ -19,5 +19,13 @@ export const TaskController = {
         const { id } = req.params;
         await TaskService.delete(id);
         res.json({ success: true });
+    },
+    async getAllTasks(req: Request, res: Response) {
+        const tasks = await TaskService.findAll();
+        res.json(tasks);
+    },
+    async moveTask(req: Request, res: Response) {
+        const tasks = await TaskService.findAll();
+        res.json(tasks);
     }
 };

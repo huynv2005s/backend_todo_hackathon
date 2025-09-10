@@ -19,8 +19,25 @@ export const ColumnController = {
         res.json(column);
     },
     async moveColumn(req: Request, res: Response) {
-        const { activeId, overdId, activePosition, overPosition } = req.body;
-        const column = await ColumnService.moveColumn(activeId, overdId, activePosition, overPosition);
-        res.json(column);
+        try {
+            const { activeId, overId, activePosition, overPosition, userId } = req.body;
+
+            if (!activeId || !overId || activePosition === undefined || overPosition === undefined) {
+                return res.status(400).json({ error: "Missing required parameters" });
+            }
+
+            const updatedColumns = await ColumnService.moveColumn(
+                activeId,
+                overId,
+                activePosition,
+                overPosition,
+                userId
+            );
+
+            res.json(updatedColumns);
+        } catch (error) {
+            console.error("Error moving column:", error);
+            res.status(500).json({ error: "Internal server error" });
+        }
     }
 };

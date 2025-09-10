@@ -6,6 +6,10 @@ import columnRoutes from "./modules/column/column.routes";
 import taskRoutes from "./modules/task/task.routes";
 import prisma from "./db/prisma";
 // dotenv.config();
+import { Server } from "socket.io";
+import http from "http";
+// import passport from "passport";
+// import jwt from "jsonwebtoken";
 const app = express();
 app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
 app.use(express.json());
@@ -68,6 +72,7 @@ app.use(express.json());
 //         res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
 //     }
 // );
+
 app.use("/boards", boardRoutes);
 app.use("/columns", columnRoutes);
 app.use("/tasks", taskRoutes);
@@ -76,5 +81,26 @@ app.get("/test", async (req, res) => {
         data: { name: "Test", email: "huy@gmail.com" }
     });
 });
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "http://localhost:3000", // FE của bạn
+        methods: ["GET", "POST", "PATCH", "DELETE"],
+    },
+});
+io.on("connection", (socket) => {
+    console.log("client connected:", socket.id);
+
+    socket.on("disconnect", () => {
+        console.log("client disconnected:", socket.id);
+    });
+
+    // Ví dụ emit realtime
+    socket.on("send_message", (msg) => {
+        console.log("Received:", msg);
+        io.emit("receive_message", msg); // broadcast cho tất cả client
+    });
+});
 const port = Number(process.env.PORT || 4000);
-app.listen(port, () => console.log(`HTTP on http://localhost:${port}`));
+server.listen(port, () => console.log(`🚀 Server running at http://localhost:${port}`));
+export { io, server };

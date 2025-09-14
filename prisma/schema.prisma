@@ -8,13 +8,11 @@ datasource db {
 }
 
 model User {
-  id        String  @id @default(cuid())
-  email     String  @unique
-  name      String?
-  avatarUrl String?
-  // login bằng Google -> bạn có thể lưu googleId nếu muốn
-  googleId  String? @unique
-
+  id            String        @id @default(cuid())
+  email         String        @unique
+  name          String?
+  provider      String
+  avatar        String
   boards        Board[]       @relation("UserBoards")
   boardMembers  BoardMember[]
   comments      Comment[]
@@ -28,6 +26,8 @@ model Board {
   title     String
   ownerId   String
   owner     User          @relation("UserBoards", fields: [ownerId], references: [id])
+  pinned    Boolean       @default(false)
+  isPublic  Boolean       @default(false)
   columns   Column[]
   members   BoardMember[]
   createdAt DateTime      @default(now())
@@ -35,15 +35,15 @@ model Board {
 }
 
 model BoardMember {
-  id      String @id @default(cuid())
-  userId  String
-  boardId String
-  role    String // "admin" | "member" | "viewer"
-
-  user  User  @relation(fields: [userId], references: [id])
-  board Board @relation(fields: [boardId], references: [id])
-
+  id        String   @id @default(cuid())
+  userId    String
+  boardId   String
+  role      String // "admin" | "member" | "viewer"
+  status    String // "joined" | "pending" | "suggested"
+  user      User     @relation(fields: [userId], references: [id])
+  board     Board    @relation(fields: [boardId], references: [id])
   createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([userId, boardId])
 }
@@ -52,13 +52,14 @@ model Column {
   id        String   @id @default(cuid())
   title     String
   boardId   String
-  position  Int // để sắp xếp và kéo thả column trong board
+  position  Int
   board     Board    @relation(fields: [boardId], references: [id])
   tasks     Task[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  color     String?
 
-  @@unique([boardId, position]) // mỗi column trong board có vị trí riêng
+  @@unique([boardId, position])
 }
 
 model Task {
@@ -66,18 +67,19 @@ model Task {
   title       String
   description String?
   columnId    String
-  position    Int // để kéo thả trong column
-  dueDate     DateTime?
-  // createdById String
+  position    Int
+  startDate   DateTime?
+  dateDone    DateTime?
+  status      String    @default("todo") // "todo" | "in-progress" | "done"
+  priority    String    @default("medium") // "low" | "medium" |
   assigneeId  String?
+  column      Column    @relation(fields: [columnId], references: [id], onDelete: Cascade)
+  assignee    User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
+  comments    Comment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
-  column    Column    @relation(fields: [columnId], references: [id])
-  assignee  User?     @relation("TaskAssignee", fields: [assigneeId], references: [id])
-  comments  Comment[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-
-  @@unique([columnId, position]) // position duy nhất trong 1 column
+  @@unique([columnId, position])
 }
 
 model Comment {

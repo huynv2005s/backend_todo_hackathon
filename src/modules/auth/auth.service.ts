@@ -1,4 +1,9 @@
-export async function getUserById(id: string) {
-    // demo: treat any id as valid user
-    return { id, name: id.includes('@') ? id.split('@')[0] : id };
-}
+import prisma from "../../db/prisma";
+
+export const AuthService = {
+    async findByEmail(email: string) {
+        return prisma.user.findUnique({
+            where: { email: email },
+        });
+    },
+};

@@ -1,12 +1,16 @@
-export const SOCKET_EVENTS = {
-    JOIN_BOARD: 'join_board',
-    LEAVE_BOARD: 'leave_board',
-    TASK_CREATE: 'task:create',
-    TASK_CREATED: 'task:created',
-    TASK_UPDATE: 'task:update',
-    TASK_UPDATED: 'task:updated',
-    COMMENT_CREATE: 'comment:create',
-    COMMENT_CREATED: 'comment:created',
-    PRESENCE_UPDATE: 'presence:update',
-    TYPING: 'typing',
-};
+export const EVENTS = {
+    COLUMN: {
+        REORDERED: "column:reordered",
+        CREATED: "column:created",
+        DELETED: "column:deleted",
+    },
+    TASK: {
+        CREATED: "task:created",
+        UPDATED: "task:updated",
+        DELETED: "task:deleted",
+        REORDERED: "task:reordered",
+    },
+    BOARD: {
+        UPDATED: "board:updated",
+    },
+} as const;

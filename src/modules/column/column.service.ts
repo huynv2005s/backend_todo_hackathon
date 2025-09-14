@@ -1,4 +1,4 @@
-import { io } from "../..";
+import { EVENTS } from "../../config/socketEvents";
 import prisma from "../../db/prisma";
 
 export const ColumnService = {
@@ -8,18 +8,31 @@ export const ColumnService = {
             _max: { position: true }
         });
         const nextPosition = (maxPosition._max.position ?? 0) + 1;
-        return prisma.column.create({
+        await prisma.column.create({
             data: {
                 title,
                 boardId,
                 position: nextPosition
             }
         });
+        return this.findAll();
     },
 
     async findAll() {
         return prisma.column.findMany({
             include: { tasks: true },
+            orderBy: { position: "asc" }
+        });
+    },
+    async findByRoom(boardId: string) {
+        return prisma.column.findMany({
+            where: { boardId },
+            include: {
+                tasks: {
+                    orderBy: { position: "asc" },
+                    include: { assignee: true }
+                }
+            },
             orderBy: { position: "asc" }
         });
     },
@@ -31,41 +44,33 @@ export const ColumnService = {
         });
     },
 
-    async moveColumn(activeId: string, overId: string, activePosition: number, overPosition: number, userId: string) {
-        // Validate input
+    async moveColumn(boardId: string, activeId: string, overId: string, activePosition: number, overPosition: number) {
         if (!activeId || !overId || activePosition === undefined || overPosition === undefined) {
             throw new Error("Invalid move parameters");
         }
 
         await prisma.$transaction(async (tx) => {
-            // Tạm thời đặt active column ra ngoài
             await tx.column.update({
                 where: { id: activeId },
                 data: { position: -1 },
             });
-
-            // Di chuyển over column về vị trí cũ của active
             await tx.column.update({
                 where: { id: overId },
                 data: { position: activePosition },
             });
-
-            // Di chuyển active column về vị trí mới
             await tx.column.update({
                 where: { id: activeId },
                 data: { position: overPosition },
             });
         });
-
-        // Lấy toàn bộ columns mới nhất
-        const updatedColumns = await this.findAll();
-
-        // Gửi toàn bộ columns mới về tất cả clients, kèm user ID của người thực hiện
-        io.emit("column:reordered", {
-            columns: updatedColumns,
-            sourceUserId: userId // Quan trọng: gửi kèm user ID
-        });
+        const updatedColumns = await this.findByRoom(boardId);
 
         return updatedColumns;
+    },
+    async delete(columnId: string) {
+        await prisma.column.delete({
+            where: { id: columnId }
+        });
+        return this.findAll();
     }
 };

@@ -9,12 +9,18 @@ export const BoardController = {
     },
 
     async createBoard(req: Request, res: Response) {
-        const { title, ownerId } = req.body;
-        const board = await BoardService.create({ title, ownerId });
+        const { title, isPublic } = req.body;
+        console.log(title, isPublic);
+        const { id: ownerId } = (req as any).user;
+        const board = await BoardService.create({ title, ownerId, isPublic });
         res.json(board);
     },
-
-    async getBoard(req: Request, res: Response) {
+    async getByUserId(req: Request, res: Response) {
+        const { id } = req.user as any;
+        const board = await BoardService.getByUserId(id);
+        res.json(board);
+    },
+    async getById(req: Request, res: Response) {
         const { id } = req.params;
         const board = await BoardService.getById(id);
         res.json(board);

@@ -1,6 +1,6 @@
 import prisma from "../../db/prisma";
 
-export const BoardService = {
+export const MemberService = {
     async getAll(userId: string) {
         return prisma.board.findMany({
             where: { members: { some: { userId } } },
@@ -8,14 +8,13 @@ export const BoardService = {
         });
     },
 
-    async create(data: { title: string; ownerId: string, isPublic: boolean }) {
-        return prisma.board.create({
+    async addMember(data: { userId: string, boardId: string }) {
+        return prisma.boardMember.create({
             data: {
-                title: data.title,
-                ownerId: data.ownerId,
-                isPublic: data.isPublic || false,
-                // color: data.color || data.private || "#ffffff",
-
+                status: "pending",
+                role: "member",
+                userId: data.userId,
+                boardId: data.boardId
             }
         });
     },

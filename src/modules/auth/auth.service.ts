@@ -6,4 +6,9 @@ export const AuthService = {
             where: { email: email },
         });
     },
+    async getUserById(id: string) {
+        return prisma.user.findUnique({
+            where: { id },
+        });
+    }
 };

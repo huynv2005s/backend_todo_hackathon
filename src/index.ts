@@ -11,7 +11,7 @@ import { Server } from "socket.io";
 import passport from "passport";
 import jwt from "jsonwebtoken";
 const app = express();
-app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
+app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 
 app.use(passport.initialize());

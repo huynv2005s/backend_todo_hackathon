@@ -21,9 +21,9 @@ export const BoardService = {
     },
 
     async getByUserId(id: string) {
-        return prisma.board.findMany({
-            where: { ownerId: id },
-            include: { columns: true }
+        return prisma.boardMember.findMany({
+            where: { userId: id },
+            include: { board: true }
         });
     },
     async getById(id: string) {

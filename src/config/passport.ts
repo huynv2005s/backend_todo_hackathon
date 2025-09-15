@@ -41,26 +41,3 @@ passport.serializeUser((user, done) => {
 passport.deserializeUser((obj: any, done) => {
     done(null, obj);
 });
-// // Bắt đầu login
-// app.get("/auth/google",
-//     passport.authenticate("google", { scope: ["profile", "email"] })
-// );
-
-// // Google redirect về đây
-// app.get(
-//     "/auth/google/callback",
-//     passport.authenticate("google", { session: false }),
-//     (req, res) => {
-//         const user = req.user;
-
-//         // Tạo JWT
-//         const token = jwt.sign(
-//             { id: user.id, email: user.email, name: user.name },
-//             process.env.JWT_SECRET,
-//             { expiresIn: "1h" }
-//         );
-
-//         // Redirect về FE kèm token
-//         res.redirect(`http://localhost:3000/auth/callback?token=${token}`);
-//     }
-// );

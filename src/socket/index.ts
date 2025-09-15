@@ -1,34 +1,45 @@
 import { Server, Socket } from "socket.io";
 import { columnGateway } from "../modules/column/column.gateway";
-import jwt from "jsonwebtoken";
 import { BoardService } from "../modules/board/board.service";
+import { MemberService } from "../modules/member/member.service";
+import { use } from "passport";
 // import { taskGateway } from "../modules/task/task.gateway";
 const userSocketMap = new Map();
+const userRooms = new Map()
 export function initSocket(io: Server) {
     io.on("connection", (socket: Socket) => {
         // console.log("Client connected:", socket.id);
         userSocketMap.set(socket.data.user.id, socket.id);
-        console.log(`User ${socket.data.user.id} mapped to socket ${socket.id}`);
+        // console.log(`User ${socket.data.user.id} mapped to socket ${socket.id}`);
         // taskGateway(io, socket);
 
         columnGateway(io, socket);
 
         // Join room
         socket.on("joinRoom", async (roomId) => {
-            if (!roomId) return;
-            socket.join(roomId);
-            const board = await BoardService.getById(roomId);
-            socket.emit("joinedRoom", board);
-            // const clients = io.sockets.adapter.rooms.get(roomId);
-
-            // if (clients) {
-            //     const userIds = [...clients].map((clientId) => {
-            //         const clientSocket = io.sockets.sockets.get(clientId);
-            //         return clientSocket?.data.user.id;
-            //     });
-
-            //     console.log(`UserIds in room ${roomId}:`, userIds);
-            // }
+            try {
+                if (!roomId) return;
+                // console.log("fsdkfd")
+                const userId = socket.data.user.id;
+                const isJoinRoom = await MemberService.checkUserJoinBoard(roomId, userId)
+                console.log(isJoinRoom)
+                // if (!isJoinRoom) {
+                //     io.to(socket.id).emit("error", {
+                //         message: "Bạn chưa tham gia board này"
+                //     })
+                //     return
+                // }
+                const currentRoomId = userRooms.get(userId);
+                if (currentRoomId && currentRoomId !== roomId) {
+                    socket.leave(currentRoomId);
+                }
+                userRooms.set(userId, roomId);
+                socket.join(roomId);
+                const board = await BoardService.getById(roomId);
+                io.to(roomId).emit("joinedRoom", board);
+            } catch (error) {
+                console.log(error)
+            }
         });
 
         // Rời room
@@ -46,6 +57,7 @@ export function initSocket(io: Server) {
         });
 
         socket.on("disconnect", () => {
+            userSocketMap.delete(socket.id)
             // console.log(" User disconnected:", socket.id);
         });
     });

@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { BoardService } from "./board.service";
+import { MemberService } from "../member/member.service";
 
 export const BoardController = {
     async getBoards(req: Request, res: Response) {
@@ -10,9 +11,11 @@ export const BoardController = {
 
     async createBoard(req: Request, res: Response) {
         const { title, isPublic } = req.body;
+        const { id } = req.user as any;
         console.log(title, isPublic);
         const { id: ownerId } = (req as any).user;
         const board = await BoardService.create({ title, ownerId, isPublic });
+        await MemberService.addOwner({ userId: id, boardId: board.id })
         res.json(board);
     },
     async getByUserId(req: Request, res: Response) {

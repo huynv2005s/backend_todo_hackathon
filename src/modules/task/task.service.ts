@@ -30,5 +30,12 @@ export const TaskService = {
     },
     async findAll() {
         return prisma.task.findMany();
+    },
+    async findByUserId(userId: string) {
+        return prisma.task.findMany({
+            where: {
+                assigneeId: userId
+            }
+        });
     }
 };

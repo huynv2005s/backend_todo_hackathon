@@ -27,5 +27,10 @@ export const TaskController = {
     async moveTask(req: Request, res: Response) {
         const tasks = await TaskService.findAll();
         res.json(tasks);
+    },
+    async getTaskByUserId(req: Request, res: Response) {
+        const { id } = req.user as any
+        const tasks = await TaskService.findByUserId(id);
+        res.json(tasks);
     }
 };

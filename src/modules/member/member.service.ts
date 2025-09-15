@@ -18,25 +18,23 @@ export const MemberService = {
             }
         });
     },
-
-    async getByUserId(id: string) {
-        return prisma.board.findMany({
-            where: { ownerId: id },
-            include: { columns: true }
-        });
-    },
-    async getById(id: string) {
-        return prisma.board.findUnique({
-            where: { id },
-            include: {
-                columns: {
-                    include: {
-                        tasks: {
-                            include: { assignee: true }
-                        }
-                    },
-                }
+    async addOwner(data: { userId: string, boardId: string }) {
+        return prisma.boardMember.create({
+            data: {
+                status: "pending",
+                role: "owner",
+                userId: data.userId,
+                boardId: data.boardId
             }
         });
+    },
+    async checkUserJoinBoard(boardId: string, userId: string) {
+        return prisma.boardMember.findFirst({
+            where: {
+                userId,
+                boardId,
+                status: "joined"
+            }
+        })
     }
 };

@@ -10,7 +10,7 @@ export function columnGateway(io: Server, socket: Socket) {
             const updatedColumns = await ColumnService.moveColumn(
                 boardId, activeId, overId, activePosition, overPosition
             )
-            io.emit("column:reordered", {
+            io.to(boardId).emit("column:reordered", {
                 columns: updatedColumns,
             });
         } catch (err) {
@@ -32,10 +32,10 @@ export function columnGateway(io: Server, socket: Socket) {
     });
     socket.on("column:get", async (boardId) => {
         try {
-            console.log("Received column:get for boardId:", boardId);
+            // console.log("Received column:get for boardId:", boardId);
             const updatedColumns = await ColumnService.findByRoom(boardId);
             // console.log("Emitting column:reordered with columns:", updatedColumns);
-            io.emit("column:reordered", {
+            io.to(boardId).emit("column:reordered", {
                 columns: updatedColumns,
             });
         } catch (err) {
